@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My First Flask Website</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        /* Center everything on the page */
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;  /* Full viewport height */
+            margin: 0;  /* Remove default margin */
+            text-align: center;
+        }
+
+        /* Optional: Center image */
+        img {
+            max-width: 80%;  /* Limit image width */
+            max-height: 80vh;  /* Limit image height */
+            margin-bottom: 20px;  /* Space between image and text */
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Astro Intelligence!</h1>
+    <p>Astro Intelligence is an AI Agent built to assist you with your astronomy-related questions!</p>
+
+    <!-- Add an image here -->
+    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Astro Image">
+
+    <script src="https://cdn.botpress.cloud/webchat/v2.3/inject.js"></script>
+    <script src="https://files.bpcontent.cloud/2025/04/20/17/20250420172427-6L6P2C4O.js"></script>
+</body>
+</html>
