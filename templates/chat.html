@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Astro Intelligence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+        }
+
+        #stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        .top-right {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 2;
+        }
+
+        .center-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 1;
+            padding: 20px;
+        }
+
+        .chat-window {
+            position: absolute;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            height: 40%;
+            overflow-y: auto;
+            padding: 20px;
+            z-index: 1;
+        }
+
+        .input-area {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            background-color: #111;
+            display: flex;
+            z-index: 2;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 10px;
+            background: #222;
+            border: none;
+            color: white;
+        }
+
+        .input-area button {
+            background: lightblue;
+            border: none;
+            padding: 10px 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .message {
+            margin: 5px 0;
+        }
+
+        .user {
+            text-align: right;
+            color: lightblue;
+        }
+
+        .bot {
+            text-align: left;
+            color: lightgreen;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="stars"></canvas>
+
+    <div class="top-right">
+        <a href="/author" style="color: lightblue; text-decoration: none; font-size: 18px;">Author</a>
+    </div>
+
+    <div class="center-content">
+        <h1>Welcome to Astro Intelligence!</h1>
+        <p>Astro Intelligence is an AI Agent built to assist you with your astronomy-related questions!</p>
+    </div>
+
+    <div class="chat-window" id="chat-window">
+        <!-- Botpress messages will be injected here -->
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Type your question..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- Botpress Script Integration -->
+    <script src="https://cdn.botpress.cloud/webchat/v2.3/inject.js" defer></script>
+    <script src="https://files.bpcontent.cloud/2025/04/20/17/20250420172427-6L6P2C4O.js" defer></script>
+
+    <script>
+        // Setup Botpress to work with the custom UI
+        window.botpressWebChat.init({
+            botId: 'astro-bot',  // your Botpress bot ID
+            host: 'https://cdn.botpress.cloud', // Botpress host URL
+            messagingUrl: 'https://cdn.botpress.cloud/webchat/v2.3', // Path to the webchat endpoint
+            container: '#chat-window',  // Attach to this element
+            onMessageReceived: function (message) {
+                const chatWindow = document.getElementById('chat-window');
+
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message bot';
+                botMessage.textContent = message.text;
+                chatWindow.appendChild(botMessage);
+                chatWindow.scrollTop = chatWindow.scrollHeight;  // Auto scroll
+            },
+            onUserMessage: function (message) {
+                const chatWindow = document.getElementById('chat-window');
+
+                const userMessage = document.createElement('div');
+                userMessage.className = 'message user';
+                userMessage.textContent = message.text;
+                chatWindow.appendChild(userMessage);
+                chatWindow.scrollTop = chatWindow.scrollHeight;  // Auto scroll
+            }
+        });
+
+        // Send message function to trigger Botpress chat
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            if (message === "") return;
+
+            window.botpressWebChat.sendMessage(message);
+            input.value = "";  // Clear the input field
+        }
+    </script>
+
+</body>
+</html>
