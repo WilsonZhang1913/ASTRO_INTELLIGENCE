@@ -11,7 +11,7 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 try:
-    from ChatClient import ChatClient, AuthenticationError, BadRequestError, RuntimeError # Import necessary items
+    from ChatClient import ChatClient, AuthenticationError, BadRequestError # Import necessary items
 except ImportError as e:
     print(f"Error importing ChatClient: {e}")
     print("Ensure ChatClient.py is in the 'src' directory and src is in PYTHONPATH.")
