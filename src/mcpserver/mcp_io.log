@@ -1,0 +1,9 @@
+MCP Client -> MCP Server: {"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"Cline","version":"3.14.0"}},"jsonrpc":"2.0","id":0}
+MCP Server to MCP Client: {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2024-11-05","capabilities":{"experimental":{},"prompts":{"listChanged":false},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":false}},"serverInfo":{"name":"search","version":"1.7.1"}}}
+MCP Client -> MCP Server: {"method":"notifications/initialized","jsonrpc":"2.0"}
+MCP Client -> MCP Server: {"method":"tools/list","jsonrpc":"2.0","id":1}
+MCP Server to MCP Client: {"jsonrpc":"2.0","id":1,"result":{"tools":[{"name":"search_sac_cac","description":"Search Google for a query, specifically for the SAC CAC domain.\n\n    Args:\n        query (str): The search query.\n\n    Returns:\n        str: Full text of the search results.\n    ","inputSchema":{"properties":{"query":{"title":"Query","type":"string"}},"required":["query"],"title":"search_sac_cacArguments","type":"object"}}]}}
+MCP Client -> MCP Server: {"method":"resources/list","jsonrpc":"2.0","id":2}
+MCP Server to MCP Client: {"jsonrpc":"2.0","id":2,"result":{"resources":[]}}
+MCP Client -> MCP Server: {"method":"resources/templates/list","jsonrpc":"2.0","id":3}
+MCP Server to MCP Client: {"jsonrpc":"2.0","id":3,"result":{"resourceTemplates":[]}}

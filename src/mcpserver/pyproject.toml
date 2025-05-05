@@ -1,0 +1,13 @@
+[project]
+name = "mcpserver"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "bs4>=0.0.2",
+    "google-api-python-client>=2.169.0",
+    "httpx>=0.28.1",
+    "mcp[cli]>=1.7.1",
+    "requests>=2.32.3",
+]
