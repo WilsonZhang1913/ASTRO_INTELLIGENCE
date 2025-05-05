@@ -1,167 +1,302 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Astro Intelligence</title>
+    <!-- Link your existing CSS or add new styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
     <style>
+        /* Basic styles for chat interface - adapt as needed */
         body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            /* Keep centering if desired, adjust height if chat takes space */
+            justify-content: space-between; /* Pushes chat input down */
+            align-items: center;
+            min-height: 100vh;
             margin: 0;
-            padding: 0;
-            height: 100vh;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-            background-color: black;
-            color: white;
+            background-color: #f4f4f4; /* Light background */
+            color: #333;
+            position: relative; /* Needed for absolute positioning of canvas/author link */
         }
 
         #stars {
-            position: absolute;
+            position: fixed; /* Keep canvas fixed in background */
             top: 0;
             left: 0;
-            z-index: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Behind other content */
         }
 
-        .top-right {
+        .header-content {
+            position: relative; /* Ensure it's above canvas */
+            width: 90%;
+            max-width: 800px;
+            text-align: center;
+            color: white; /* Keep text white over stars */
+            padding-top: 20px;
+            z-index: 1;
+            background-color: rgba(0, 0, 0, 0.3); /* Slight dark background for readability */
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        #chat-container {
+            position: relative; /* Ensure it's above canvas */
+            width: 90%;
+            max-width: 800px;
+            height: 60vh; /* Adjust height as needed */
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow-y: auto; /* Scrollable chat */
+            padding: 15px;
+            margin-bottom: 10px; /* Space above input */
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chat-output {
+            flex-grow: 1; /* Takes available space */
+            overflow-y: auto; /* Scroll within output */
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #dcf8c6; /* Light green */
+            align-self: flex-end;
+            margin-left: auto; /* Push to right */
+        }
+        .bot-message {
+            background-color: #eee; /* Light grey */
+            align-self: flex-start;
+            margin-right: auto; /* Push to left */
+        }
+        .error-message {
+            background-color: #f8d7da; /* Light red */
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            align-self: center; /* Center error messages */
+            width: 90%;
+            text-align: center;
+        }
+
+        #input-area {
+            position: relative; /* Ensure it's above canvas */
+            display: flex;
+            width: 90%;
+            max-width: 800px;
+            padding: 10px;
+            background-color: rgba(240, 240, 240, 0.9); /* Light background for input */
+            border-radius: 8px;
+            z-index: 1;
+            margin-bottom: 20px; /* Space at the bottom */
+        }
+
+        #questionInput {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        #askButton {
+            padding: 10px 15px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #askButton:hover {
+            background-color: #4cae4c;
+        }
+        #askButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .author-link {
             position: absolute;
             top: 20px;
             right: 20px;
             z-index: 2;
-        }
-
-        .center-content {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            z-index: 1;
-            padding: 20px;
-        }
-
-        .chat-window {
-            position: absolute;
-            bottom: 60px;
-            left: 0;
-            right: 0;
-            height: 40%;
-            overflow-y: auto;
-            padding: 20px;
-            z-index: 1;
-        }
-
-        .input-area {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 10px;
-            background-color: #111;
-            display: flex;
-            z-index: 2;
-        }
-
-        .input-area input {
-            flex: 1;
-            padding: 10px;
-            background: #222;
-            border: none;
-            color: white;
-        }
-
-        .input-area button {
-            background: lightblue;
-            border: none;
-            padding: 10px 20px;
-            margin-left: 10px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .message {
-            margin: 5px 0;
-        }
-
-        .user {
-            text-align: right;
             color: lightblue;
+            text-decoration: none;
+            font-size: 18px;
         }
 
-        .bot {
-            text-align: left;
-            color: lightgreen;
-        }
     </style>
 </head>
 
 <body>
     <canvas id="stars"></canvas>
 
-    <div class="top-right">
-        <a href="/author" style="color: lightblue; text-decoration: none; font-size: 18px;">Author</a>
-    </div>
+    <a href="/author" class="author-link">Author</a>
 
-    <div class="center-content">
+    <div class="header-content">
         <h1>Welcome to Astro Intelligence!</h1>
-        <p>Astro Intelligence is an AI Agent built to assist you with your astronomy-related questions!</p>
+        <p>Ask me anything about astronomy!</p>
     </div>
 
-    <div class="chat-window" id="chat-window">
-        <!-- Botpress messages will be injected here -->
+    <!-- Chat Interface -->
+    <div id="chat-container">
+        <div id="chat-output">
+            <!-- Chat messages will appear here -->
+             <div class="message bot-message">Hello! How can I help you with astronomy today?</div>
+        </div>
     </div>
-
-    <div class="input-area">
-        <input type="text" id="user-input" placeholder="Type your question..." />
-        <button onclick="sendMessage()">Send</button>
+    <div id="input-area">
+        <input type="text" id="questionInput" placeholder="Type your question here...">
+        <button id="askButton">Ask</button>
     </div>
+    <!-- End Chat Interface -->
 
-    <!-- Botpress Script Integration -->
-    <script src="https://cdn.botpress.cloud/webchat/v2.3/inject.js" defer></script>
-    <script src="https://files.bpcontent.cloud/2025/04/20/17/20250420172427-6L6P2C4O.js" defer></script>
+    <!-- REMOVE Botpress Scripts if replacing -->
+    <!-- <script src="https://cdn.botpress.cloud/webchat/v2.4/inject.js"></script> -->
+    <!-- <script src="https://files.bpcontent.cloud/2025/04/20/17/20250420172427-6L6P2C4O.js"></script> -->
 
     <script>
-        // Setup Botpress to work with the custom UI
-        window.botpressWebChat.init({
-            botId: 'astro-bot',  // your Botpress bot ID
-            host: 'https://cdn.botpress.cloud', // Botpress host URL
-            messagingUrl: 'https://cdn.botpress.cloud/webchat/v2.3', // Path to the webchat endpoint
-            container: '#chat-window',  // Attach to this element
-            onMessageReceived: function (message) {
-                const chatWindow = document.getElementById('chat-window');
+        // Star background script (keep as is)
+        const canvas = document.getElementById('stars');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        function createStars(count) { stars = []; for (let i = 0; i < count; i++) { stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, radius: Math.random() * 1.5, speed: Math.random() * 0.5 + 0.2 }); } }
+        function animateStars() { ctx.fillStyle = "black"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = "white"; for (let star of stars) { ctx.beginPath(); ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2); ctx.fill(); star.y += star.speed; if (star.y > canvas.height) { star.y = 0; star.x = Math.random() * canvas.width; } } requestAnimationFrame(animateStars); }
+        window.addEventListener('resize', () => { resizeCanvas(); createStars(300); });
+        resizeCanvas(); createStars(300); animateStars();
 
-                const botMessage = document.createElement('div');
-                botMessage.className = 'message bot';
-                botMessage.textContent = message.text;
-                chatWindow.appendChild(botMessage);
-                chatWindow.scrollTop = chatWindow.scrollHeight;  // Auto scroll
-            },
-            onUserMessage: function (message) {
-                const chatWindow = document.getElementById('chat-window');
+        // --- Chat Interaction Logic ---
+        const questionInput = document.getElementById('questionInput');
+        const askButton = document.getElementById('askButton');
+        const chatOutput = document.getElementById('chat-output');
+        let eventSource = null; // To hold the EventSource connection
 
-                const userMessage = document.createElement('div');
-                userMessage.className = 'message user';
-                userMessage.textContent = message.text;
-                chatWindow.appendChild(userMessage);
-                chatWindow.scrollTop = chatWindow.scrollHeight;  // Auto scroll
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+            // Basic sanitization (replace < and > to prevent HTML injection)
+            // For robust sanitization, use a library like DOMPurify
+            messageDiv.textContent = text;
+            chatOutput.appendChild(messageDiv);
+            // Scroll to the bottom
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+            return messageDiv; // Return the div if we need to append to it
+        }
+
+        function addErrorMessage(errorData) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', 'error-message');
+            let displayMessage = "An error occurred.";
+            if (errorData && typeof errorData === 'object') {
+                displayMessage = `${errorData.error || 'Error'}: ${errorData.message || 'Unknown error'}`;
+            } else if (typeof errorData === 'string') {
+                 displayMessage = errorData; // Fallback if it's just a string
+            }
+            messageDiv.textContent = displayMessage;
+            chatOutput.appendChild(messageDiv);
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+        }
+
+
+        function askQuestion() {
+            const question = questionInput.value.trim();
+            if (!question) return; // Don't send empty questions
+
+            // Close any existing connection before starting a new one
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            addMessage(question, 'user'); // Display user question
+            questionInput.value = ''; // Clear input
+            askButton.disabled = true; // Disable button while waiting
+
+            // Create the container for the bot's response
+            let botMessageDiv = addMessage("...", 'bot'); // Placeholder
+
+            // Construct URL with query parameter
+            const url = `/chat_stream?question=${encodeURIComponent(question)}`;
+            eventSource = new EventSource(url);
+
+            let fullResponse = ""; // Accumulate response chunks
+
+            eventSource.onopen = function() {
+                console.log("SSE Connection opened.");
+                botMessageDiv.textContent = ""; // Clear placeholder
+            };
+
+            eventSource.onmessage = function(event) {
+                try {
+                    // Assuming server sends JSON string chunks like "data: \"chunk text\"\n\n"
+                    const chunk = JSON.parse(event.data);
+                    fullResponse += chunk;
+                    // Update the bot message div directly
+                    botMessageDiv.textContent = fullResponse; // Replace content
+                    chatOutput.scrollTop = chatOutput.scrollHeight; // Keep scrolled down
+                } catch (e) {
+                    console.error("Failed to parse message data:", event.data, e);
+                     // Display raw data if parsing fails
+                     botMessageDiv.textContent += event.data;
+                }
+            };
+
+            // Listen for custom 'error' events from the server
+            eventSource.addEventListener('error', function(event) {
+                 console.error("SSE Error event received:", event);
+                 let errorData;
+                 try {
+                     errorData = JSON.parse(event.data);
+                 } catch(e) {
+                     errorData = { error: "Connection Error", message: "Received an invalid error format from server or connection failed." };
+                 }
+                 // Remove the placeholder/partial message and add the error
+                 if (botMessageDiv) botMessageDiv.remove();
+                 addErrorMessage(errorData);
+                 eventSource.close(); // Close connection on server-sent error
+                 askButton.disabled = false; // Re-enable button
+            });
+
+             // Listen for custom 'end' event
+            eventSource.addEventListener('end', function(event) {
+                console.log("SSE Stream ended by server.");
+                eventSource.close();
+                askButton.disabled = false; // Re-enable button
+            });
+
+            // Handle generic network errors for the EventSource itself
+            eventSource.onerror = function(err) {
+                console.error("EventSource failed:", err);
+                // Avoid adding duplicate errors if server already sent an 'error' event
+                if (eventSource && eventSource.readyState === EventSource.CLOSED) {
+                     // Already handled by server 'error' or 'end' event likely
+                     console.log("EventSource closed, likely handled.");
+                } else {
+                    if (botMessageDiv) botMessageDiv.remove(); // Remove placeholder
+                    addErrorMessage({ error: "Connection Error", message: "Could not connect to the chat service." });
+                }
+                if (eventSource) eventSource.close(); // Ensure it's closed
+                askButton.disabled = false; // Re-enable button
+            };
+        }
+
+        askButton.addEventListener('click', askQuestion);
+        questionInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                askQuestion();
             }
         });
 
-        // Send message function to trigger Botpress chat
-        function sendMessage() {
-            const input = document.getElementById('user-input');
-            const message = input.value.trim();
-            if (message === "") return;
-
-            window.botpressWebChat.sendMessage(message);
-            input.value = "";  // Clear the input field
-        }
     </script>
-
 </body>
 </html>
