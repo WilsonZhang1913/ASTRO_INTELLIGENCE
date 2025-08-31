@@ -3,6 +3,7 @@ import sys
 import os
 from flask import Flask, render_template, request, Response, stream_with_context
 import json # To potentially send structured error messages
+import uuid  # For generating conversation IDs
 
 # Add the src directory to the Python path to find ChatClient
 # Adjust the path if your directory structure is different
@@ -11,7 +12,9 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 try:
-    from ChatClient import ChatClient, AuthenticationError, BadRequestError, RuntimeError # Import necessary items
+    # Import app-specific classes/exceptions from ChatClient.
+    # Note: `RuntimeError` is a built-in exception; no import needed.
+    from ChatClient import ChatClient, AuthenticationError, BadRequestError
 except ImportError as e:
     print(f"Error importing ChatClient: {e}")
     print("Ensure ChatClient.py is in the 'src' directory and src is in PYTHONPATH.")
@@ -61,11 +64,26 @@ def chat_stream():
             yield f"event: error\ndata: {json.dumps({'error': error_message})}\n\n"
         return Response(stream_with_context(error_stream()), mimetype='text/event-stream')
 
+    # Determine per-visitor conversation_id via cookie (one ID per visitor)
+    cid_cookie = request.cookies.get('cid')
+    if cid_cookie:
+        conversation_id = cid_cookie
+    else:
+        conversation_id = str(uuid.uuid4())
+    # Ensure a history bucket exists (idempotent)
+    chat_client.start_conversation(conversation_id)
+
     def generate_sse():
         """Generates SSE formatted stream data."""
         try:
-            # Use the generator from ChatClient
-            stream_generator = chat_client.chat_with_model_stream(question)
+            # Optionally announce the conversation ID
+            yield f"event: cid\ndata: {json.dumps({'cid': conversation_id})}\n\n"
+
+            # Use the generator from ChatClient with conversation context
+            stream_generator = chat_client.chat_with_model_stream(
+                question,
+                conversation_id=conversation_id,
+            )
             for chunk in stream_generator:
                 # Format as SSE: data: <chunk>\n\n
                 yield f"data: {json.dumps(chunk)}\n\n" # Send data as JSON string
@@ -91,8 +109,10 @@ def chat_stream():
             yield f"event: error\ndata: {json.dumps(error_data)}\n\n"
 
     # Return a streaming response with the correct mimetype for SSE
-    # stream_with_context is important for using generators within requests
-    return Response(stream_with_context(generate_sse()), mimetype='text/event-stream')
+    # and set/update the visitor cookie with the conversation_id.
+    resp = Response(stream_with_context(generate_sse()), mimetype='text/event-stream')
+    resp.set_cookie('cid', conversation_id, max_age=60*60*24*30, samesite='Lax')
+    return resp
 
 
 if __name__ == "__main__":
