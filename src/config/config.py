@@ -1,5 +1,5 @@
 BASE_URL="https://openrouter.ai/api/v1"
-API_KEY="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"
+API_KEY="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"
 
 # Ranked list of free chatbot models (best first)
 CHATBOT_MODELS = [
