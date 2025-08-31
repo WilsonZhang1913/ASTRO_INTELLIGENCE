@@ -4,6 +4,7 @@ from prompts.SystemPrompt import SYSTEM_PROMPT
 from config.config import *
 import traceback # For unexpected errors
 from typing import Dict, List, Optional
+import time
 
 
 class ChatClient:
