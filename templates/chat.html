@@ -42,6 +42,19 @@
             margin-top: 20px;
         }
 
+        /* Title with logo next to text */
+        .header-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0; /* Remove default h1 margin to keep layout tight */
+        }
+        .header-title img {
+            height: 42px;
+            width: auto;
+            display: inline-block;
+        }
+
         #chat-container {
             position: relative; /* Ensure it's above canvas */
             width: 90%;
@@ -148,7 +161,10 @@
     <a href="/author" class="author-link">Author</a>
 
     <div class="header-content">
-        <h1>Welcome to Astro Intelligence!</h1>
+        <h1 class="header-title">
+            Welcome to Astro Intelligence!
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Astro Intelligence logo">
+        </h1>
         <p>Ask me anything about astronomy!</p>
     </div>
 
